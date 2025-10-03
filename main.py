@@ -22,7 +22,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 from src.config_manager import ConfigManager
 from src.news_fetcher import NewsFetcher
 from src.text_summarizer import TextSummarizer
-from simple_video_creator import SimpleVideoCreator  # Use simple video creator
+from enhanced_video_creator import EnhancedVideoCreator  # Use enhanced video creator
 from src.audio_manager import AudioManager
 from src.image_manager import ImageManager
 from src.utils.logger import setup_logger
@@ -47,7 +47,7 @@ class FlashVideoBot:
         # Initialize components
         self.news_fetcher = NewsFetcher(self.config)
         self.summarizer = TextSummarizer(self.config)
-        self.video_creator = SimpleVideoCreator(self.config.get_config())  # Use simple video creator
+        self.video_creator = EnhancedVideoCreator(self.config.get_config())  # Use enhanced video creator
         self.audio_manager = AudioManager(self.config)
         self.image_manager = ImageManager(self.config)
         
