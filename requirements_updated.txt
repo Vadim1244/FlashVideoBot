@@ -1,0 +1,28 @@
+# Update requirements to include missing packages to fix import errors
+aiohttp==3.9.0
+beautifulsoup4==4.12.2
+feedparser==6.0.10
+gTTS==2.4.0
+moviepy==1.0.3
+nltk==3.8.1
+numpy==1.24.3
+opencv-python==4.8.1.78
+pillow==10.0.1
+pydub==0.25.1
+python-dotenv==1.0.0
+pyttsx3==2.90
+PyYAML==6.0.1
+requests==2.31.0
+sumy==0.11.0
+textstat==0.7.3
+torch==2.1.0
+tqdm==4.66.1
+transformers==4.35.0
+
+# Optional dependencies for enhanced functionality
+librosa==0.10.1
+scikit-image==0.21.0
+imageio==2.31.5
+
+# For audio processing (optional)
+# ffmpeg-python==0.2.0

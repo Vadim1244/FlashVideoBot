@@ -1,0 +1,40 @@
+# Core dependencies
+moviepy==1.0.3
+opencv-python==4.8.1.78
+pillow==10.0.1
+numpy==1.24.3
+
+# News fetching
+requests==2.31.0
+feedparser==6.0.10
+beautifulsoup4==4.12.2
+aiohttp==3.9.0
+
+# NLP and summarization
+transformers==4.35.0
+torch==2.1.0
+sumy==0.11.0
+nltk==3.8.1
+textstat==0.7.3
+
+# Text-to-speech
+pyttsx3==2.90
+gTTS==2.4.0
+
+# Image processing and downloading
+pillow==10.0.1
+
+# Audio processing
+pydub==0.25.1
+librosa==0.10.1
+
+# Progress and logging
+tqdm==4.66.1
+python-dotenv==1.0.0
+
+# Video effects and transitions
+imageio==2.31.5
+scikit-image==0.21.0
+
+# Configuration
+pyyaml==6.0.1

@@ -1,0 +1,117 @@
+# FlashVideoBot Configuration
+# Copy this to config_local.yaml and add your API keys
+
+# News Sources Configuration
+news:
+  # NewsAPI (get free key at https://newsapi.org)
+  newsapi_key: "YOUR_NEWSAPI_KEY_HERE"
+  
+  # RSS Feeds
+  rss_feeds:
+    - "https://feeds.bbci.co.uk/news/rss.xml"
+    - "https://rss.cnn.com/rss/edition.rss"
+    - "https://feeds.reuters.com/reuters/topNews"
+    - "https://feeds.npr.org/1001/rss.xml"
+    - "https://feeds.skynews.com/feeds/rss/home.xml"
+  
+  # News categories to fetch
+  categories: ["general", "technology", "business", "entertainment", "health", "science", "sports"]
+  
+  # Number of articles to process per run
+  max_articles: 5
+
+# Video Configuration
+video:
+  # Video dimensions (YouTube Shorts format)
+  width: 1080
+  height: 1920
+  fps: 30
+  duration: 30  # Max video duration in seconds
+  
+  # Text animation settings
+  text:
+    font_size: 60
+    title_font_size: 80
+    font_color: "#FFFFFF"
+    bg_color: "#000000"
+    stroke_color: "#FF0000"
+    stroke_width: 2
+    
+  # Transition effects
+  transitions:
+    fade_duration: 0.5
+    zoom_factor: 1.2
+    slide_duration: 0.3
+    
+  # Background settings
+  background:
+    blur_intensity: 2
+    brightness_factor: 0.7
+    contrast_factor: 1.2
+
+# Audio Configuration
+audio:
+  # Text-to-speech settings
+  tts:
+    engine: "gtts"  # or "pyttsx3"
+    language: "en"
+    speed: 1.2
+    
+  # Background music
+  music:
+    enabled: true
+    volume: 0.3  # 30% of original volume
+    fade_in: 1.0
+    fade_out: 1.0
+
+# Image Sources
+images:
+  # Unsplash (get free key at https://unsplash.com/developers)
+  unsplash_access_key: "YOUR_UNSPLASH_KEY_HERE"
+  
+  # Pixabay (get free key at https://pixabay.com/api/docs/)
+  pixabay_api_key: "YOUR_PIXABAY_KEY_HERE"
+  
+  # Fallback keywords for image search
+  fallback_keywords: ["news", "breaking news", "media", "journalism", "newspaper"]
+
+# AI/NLP Configuration
+ai:
+  # Summarization settings
+  summarization:
+    model: "facebook/bart-large-cnn"  # or "google/pegasus-xsum"
+    max_length: 100
+    min_length: 30
+    
+  # Sentiment analysis for music selection
+  sentiment_analysis: true
+  
+# Output Configuration
+output:
+  # Video output format
+  format: "mp4"
+  quality: "high"  # high, medium, low
+  
+  # File naming
+  filename_format: "news_video_{timestamp}_{index}"
+  
+  # Cleanup old files (days)
+  cleanup_after_days: 7
+
+# Performance Settings
+performance:
+  # Parallel processing
+  max_workers: 4
+  
+  # Memory optimization
+  chunk_size: 1000
+  
+  # Cache settings
+  cache_images: true
+  cache_duration_hours: 24
+
+# Logging
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  log_to_file: true
+  log_file: "logs/flashvideobot.log"
