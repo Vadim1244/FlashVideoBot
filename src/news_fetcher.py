@@ -13,7 +13,7 @@ import aiohttp
 import feedparser
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any, Optional
 import logging
 import hashlib
@@ -207,10 +207,15 @@ class NewsFetcher:
         Returns:
             Standardized article dictionary
         """
+        # Safely handle None values before calling strip()
+        title = article.get('title', '') or ''
+        description = article.get('description', '') or ''
+        content = article.get('content', '') or ''
+        
         return {
-            'title': article.get('title', '').strip(),
-            'description': article.get('description', '').strip(),
-            'content': article.get('content', '').strip(),
+            'title': title.strip(),
+            'description': description.strip(),
+            'content': content.strip(),
             'url': article.get('url', ''),
             'url_to_image': article.get('urlToImage'),
             'published_at': self._parse_date(article.get('publishedAt')),
@@ -260,9 +265,16 @@ class NewsFetcher:
         parsed_url = urlparse(feed_url)
         source_name = parsed_url.netloc.replace('www.', '').split('.')[0].title()
         
+        # Safely get title and description
+        title = entry.title if hasattr(entry, 'title') else ''
+        title = title.strip() if title else ''
+        
+        description = entry.summary if hasattr(entry, 'summary') else ''
+        description = description.strip() if description else ''
+        
         return {
-            'title': entry.title.strip() if hasattr(entry, 'title') else '',
-            'description': entry.summary.strip() if hasattr(entry, 'summary') else '',
+            'title': title,
+            'description': description,
             'content': content,
             'url': entry.link if hasattr(entry, 'link') else '',
             'url_to_image': image_url,
@@ -282,7 +294,7 @@ class NewsFetcher:
             date_str: Date string in various formats
             
         Returns:
-            Parsed datetime object
+            Parsed datetime object (timezone naive)
         """
         if not date_str:
             return datetime.now()
@@ -299,7 +311,12 @@ class NewsFetcher:
             
             for fmt in formats:
                 try:
-                    return datetime.strptime(date_str, fmt)
+                    parsed_date = datetime.strptime(date_str, fmt)
+                    # Ensure we return a timezone-naive datetime
+                    if hasattr(parsed_date, 'tzinfo') and parsed_date.tzinfo is not None:
+                        # Convert to UTC and then remove timezone info
+                        parsed_date = parsed_date.astimezone(datetime.utcnow().tzinfo).replace(tzinfo=None)
+                    return parsed_date
                 except ValueError:
                     continue
             
@@ -364,7 +381,12 @@ class NewsFetcher:
             # Check recency (articles from last 24 hours preferred)
             published_at = article.get('published_at', datetime.min)
             if isinstance(published_at, datetime):
-                age_hours = (datetime.now() - published_at).total_seconds() / 3600
+                # Ensure both datetimes are timezone-naive for comparison
+                now = datetime.now()
+                if hasattr(published_at, 'tzinfo') and published_at.tzinfo is not None:
+                    published_at = published_at.replace(tzinfo=None)
+                
+                age_hours = (now - published_at).total_seconds() / 3600
                 if age_hours > 48:  # Skip articles older than 48 hours
                     continue
             
@@ -378,7 +400,13 @@ class NewsFetcher:
             cache_file = os.path.join(self.cache_dir, f"{cache_key}.json")
             if os.path.exists(cache_file):
                 # Check if cache is still valid
-                cache_age = datetime.now() - datetime.fromtimestamp(os.path.getmtime(cache_file))
+                now = datetime.now()
+                file_time = datetime.fromtimestamp(os.path.getmtime(cache_file))
+                # Ensure both datetimes are timezone-naive
+                if hasattr(file_time, 'tzinfo') and file_time.tzinfo is not None:
+                    file_time = file_time.replace(tzinfo=None)
+                
+                cache_age = now - file_time
                 if cache_age.total_seconds() < self.cache_duration * 3600:
                     with open(cache_file, 'r', encoding='utf-8') as f:
                         return json.load(f)
