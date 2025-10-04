@@ -172,18 +172,23 @@ class EnhancedVideoCreator:
                 # Check if the provided images are actually valid and not just solid color fallbacks
                 valid_images = []
                 for img in images:
-                    if os.path.exists(img):
+                    # Make sure we have the absolute path
+                    img_path = os.path.abspath(img) if not os.path.isabs(img) else img
+                    
+                    if os.path.exists(img_path):
                         # Skip solid color fallback images from image manager
-                        if 'fallback_color_' in os.path.basename(img):
-                            logger.info(f"Skipping solid color fallback: {img}")
+                        if 'fallback_color_' in os.path.basename(img_path):
+                            logger.info(f"Skipping solid color fallback: {img_path}")
                             continue
                         try:
                             # Try to open the image to verify it's valid
-                            test_img = PIL.Image.open(img)
+                            # Import PIL here to avoid the "referenced before assignment" issue
+                            import PIL.Image
+                            test_img = PIL.Image.open(img_path)
                             test_img.close()
-                            valid_images.append(img)
-                        except Exception:
-                            logger.warning(f"Image file is corrupted or invalid: {img}")
+                            valid_images.append(img_path)
+                        except Exception as e:
+                            logger.warning(f"Image file is corrupted or invalid: {img_path} - {e}")
                 
                 if not valid_images:
                     logger.info("All provided images are invalid or solid color fallbacks, creating text content instead")
@@ -192,7 +197,13 @@ class EnhancedVideoCreator:
                     images = valid_images
             
             # Filter valid images
-            valid_images = [img for img in images if os.path.exists(img)]
+            valid_images = []
+            for img in images:
+                abs_path = os.path.abspath(img) if not os.path.isabs(img) else img
+                if os.path.exists(abs_path):
+                    valid_images.append(abs_path)
+                else:
+                    logger.warning(f"Image path does not exist: {abs_path}")
             
             if not valid_images:
                 logger.error("No valid images available")
@@ -210,15 +221,21 @@ class EnhancedVideoCreator:
                     
                     # First verify the image file
                     try:
-                        pil_img = PIL.Image.open(image_path)
+                        # Ensure we have the absolute path
+                        abs_image_path = os.path.abspath(image_path) if not os.path.isabs(image_path) else image_path
+                        
+                        # Import PIL here to avoid the "referenced before assignment" issue
+                        import PIL.Image
+                        pil_img = PIL.Image.open(abs_image_path)
                         pil_img.verify()  # Verify it's a valid image
                         pil_img.close()
                         
                         # Reopen the image after verify (which closes the file)
-                        pil_img = PIL.Image.open(image_path)
+                        pil_img = PIL.Image.open(abs_image_path)
                         
-                        # Create image clip
-                        img_clip = ImageClip(image_path)
+                        # Create image clip - Import inside try block to avoid errors
+                        from moviepy.editor import ImageClip
+                        img_clip = ImageClip(abs_image_path)
                         
                         # Resize to fit screen while maintaining aspect ratio
                         img_clip = img_clip.resize(height=self.height)
