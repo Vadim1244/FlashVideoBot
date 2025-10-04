@@ -5,14 +5,22 @@ Enhanced Simple Video Creator with fallback images and text overlays
 
 import os
 import logging
+import re
+import numpy as np
+import sys
 from typing import Dict, List, Optional, Any
+
+# Import moviepy components
 from moviepy.editor import (
     ImageClip, AudioFileClip, CompositeVideoClip, 
     concatenate_videoclips, ColorClip
 )
+    
+import PIL
 from PIL import Image, ImageDraw, ImageFont
 import textwrap
 import random
+import nltk
 
 logger = logging.getLogger('FlashVideoBot.EnhancedVideoCreator')
 
@@ -171,7 +179,7 @@ class EnhancedVideoCreator:
                             continue
                         try:
                             # Try to open the image to verify it's valid
-                            test_img = Image.open(img)
+                            test_img = PIL.Image.open(img)
                             test_img.close()
                             valid_images.append(img)
                         except Exception:
@@ -196,25 +204,50 @@ class EnhancedVideoCreator:
             
             for i, image_path in enumerate(valid_images):
                 try:
-                    # Create image clip
-                    img_clip = ImageClip(image_path)
+                    # Import needed modules within the try block
+                    from moviepy.editor import ImageClip, ColorClip
+                    import PIL.Image
                     
-                    # Resize to fit screen while maintaining aspect ratio
-                    img_clip = img_clip.resize(height=self.height)
-                    if img_clip.w > self.width:
-                        img_clip = img_clip.resize(width=self.width)
-                    
-                    # Center the image
-                    img_clip = img_clip.set_position('center')
-                    img_clip = img_clip.set_duration(duration_per_image)
-                    
-                    # Add subtle zoom effect
-                    if i % 2 == 0:
-                        # Zoom in
-                        img_clip = img_clip.resize(lambda t: 1 + 0.1 * t / duration_per_image)
-                    else:
-                        # Zoom out
-                        img_clip = img_clip.resize(lambda t: 1.1 - 0.1 * t / duration_per_image)
+                    # First verify the image file
+                    try:
+                        pil_img = PIL.Image.open(image_path)
+                        pil_img.verify()  # Verify it's a valid image
+                        pil_img.close()
+                        
+                        # Reopen the image after verify (which closes the file)
+                        pil_img = PIL.Image.open(image_path)
+                        
+                        # Create image clip
+                        img_clip = ImageClip(image_path)
+                        
+                        # Resize to fit screen while maintaining aspect ratio
+                        img_clip = img_clip.resize(height=self.height)
+                        if img_clip.w > self.width:
+                            img_clip = img_clip.resize(width=self.width)
+                        
+                        # Center the image
+                        img_clip = img_clip.set_position('center')
+                        img_clip = img_clip.set_duration(duration_per_image)
+                        
+                        # Add subtle zoom effect
+                        if i % 2 == 0:
+                            # Zoom in
+                            img_clip = img_clip.resize(lambda t: 1 + 0.1 * t / duration_per_image)
+                        else:
+                            # Zoom out
+                            img_clip = img_clip.resize(lambda t: 1.1 - 0.1 * t / duration_per_image)
+                        
+                    except (IOError, SyntaxError) as e:
+                        # Create a fallback color clip with text if image is invalid
+                        logger.warning(f"Invalid image {image_path}, creating color clip instead: {e}")
+                        
+                        # Use a color from a list based on index
+                        colors = [(30, 64, 175), (67, 56, 202), (15, 23, 42)]
+                        bg_color = colors[i % len(colors)]
+                        
+                        # Create a color clip as fallback
+                        img_clip = ColorClip((self.width, self.height), col=bg_color)
+                        img_clip = img_clip.set_duration(duration_per_image)
                     
                     video_clips.append(img_clip)
                     
@@ -233,19 +266,184 @@ class EnhancedVideoCreator:
                 final_video = concatenate_videoclips(video_clips, method="compose")
             
             # Add audio if available
-            if audio_path and os.path.exists(audio_path):
+            if audio_path:
                 try:
-                    audio_clip = AudioFileClip(audio_path)
-                    # Match audio duration to video
-                    if audio_clip.duration > final_video.duration:
-                        audio_clip = audio_clip.subclip(0, final_video.duration)
-                    elif audio_clip.duration < final_video.duration:
-                        final_video = final_video.subclip(0, audio_clip.duration)
+                    # First check if the WAV file exists
+                    if os.path.exists(audio_path):
+                        logger.info(f"Adding audio from WAV: {audio_path}")
+                        audio_file_path = audio_path
+                    # Then check if an MP3 version exists
+                    elif os.path.exists(audio_path.replace('.wav', '.mp3')):
+                        mp3_path = audio_path.replace('.wav', '.mp3')
+                        logger.info(f"Using MP3 audio instead: {mp3_path}")
+                        audio_file_path = mp3_path
+                    # Also check for mp3 if we were given a wav path
+                    elif audio_path.endswith('.mp3') and os.path.exists(audio_path.replace('.mp3', '.wav')):
+                        wav_path = audio_path.replace('.mp3', '.wav')
+                        logger.info(f"Using WAV audio instead: {wav_path}")
+                        audio_file_path = wav_path
+                    # Check if audio file exists in assets/temp/audio directory
+                    elif not os.path.dirname(audio_path).endswith('audio'):
+                        audio_temp_dir = os.path.join('assets', 'temp', 'audio')
+                        audio_base = os.path.basename(audio_path)
+                        temp_audio_path = os.path.join(audio_temp_dir, audio_base)
+                        
+                        if os.path.exists(temp_audio_path):
+                            logger.info(f"Found audio in temp directory: {temp_audio_path}")
+                            audio_file_path = temp_audio_path
+                        elif os.path.exists(temp_audio_path.replace('.wav', '.mp3')):
+                            mp3_path = temp_audio_path.replace('.wav', '.mp3')
+                            logger.info(f"Found MP3 in temp directory: {mp3_path}")
+                            audio_file_path = mp3_path
+                        else:
+                            # Fall through to the name pattern search
+                            audio_file_path = None
+                    # Finally check if there's any audio file in the temp directory with a similar name
+                    else:
+                        audio_dir = os.path.dirname(audio_path)
+                        # Make sure audio_dir exists
+                        if not os.path.exists(audio_dir):
+                            audio_dir = os.path.join('assets', 'temp', 'audio')
+                            
+                        base_name = os.path.basename(audio_path).split('_')[0]
+                        
+                        # Look for any audio file with a similar name pattern
+                        if os.path.exists(audio_dir):
+                            potential_audio_files = [
+                                os.path.join(audio_dir, f) for f in os.listdir(audio_dir)
+                                if (f.startswith(base_name) or 'narration_' in f) and (f.endswith('.mp3') or f.endswith('.wav'))
+                            ]
+                        
+                            if potential_audio_files:
+                                # Use the most recent one
+                                potential_audio_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+                                audio_file_path = potential_audio_files[0]
+                                logger.info(f"Found alternative audio file: {audio_file_path}")
+                            else:
+                                logger.warning(f"No audio files found in {audio_dir}")
+                                audio_file_path = None
+                        else:
+                            logger.warning(f"Audio directory does not exist: {audio_dir}")
+                            audio_file_path = None
                     
-                    final_video = final_video.set_audio(audio_clip)
-                    
+                    # If we found an audio file, add it to the video
+                    if audio_file_path and os.path.exists(audio_file_path):
+                        audio_clip = AudioFileClip(audio_file_path)
+                        logger.info(f"Audio duration: {audio_clip.duration}, Video duration: {final_video.duration}")
+                        
+                        # Match audio duration to video
+                        if audio_clip.duration > final_video.duration:
+                            audio_clip = audio_clip.subclip(0, final_video.duration)
+                        elif audio_clip.duration < final_video.duration:
+                            final_video = final_video.subclip(0, audio_clip.duration)
+                        
+                        final_video = final_video.set_audio(audio_clip)
+                        logger.info("Audio added successfully")
+                    else:
+                        logger.warning(f"No valid audio file found")
+                        
                 except Exception as e:
-                    logger.warning(f"Failed to add audio: {e}")
+                    logger.error(f"Failed to add audio: {e}")
+            else:
+                logger.warning(f"No audio path provided")
+            
+            # Add captions using PIL instead of TextClip (no ImageMagick needed)
+            try:
+                # Use both title and summary for better captions
+                title = article.get('title', '')
+                summary = article.get('summary', '')
+                caption_text = summary[:100] + '...' if len(summary) > 100 else summary
+                
+                if caption_text:
+                    logger.info("Adding caption using PIL method instead of TextClip")
+                    
+                    # Create a new blank frame with the caption text
+                    caption_height = 150
+                    from PIL import Image, ImageDraw, ImageFont
+                    
+                    # Create caption background with gradient
+                    caption_bg = Image.new('RGBA', (self.width, caption_height), (0, 0, 0, 0))
+                    draw = ImageDraw.Draw(caption_bg)
+                    
+                    # Create semi-transparent black gradient from bottom to 2/3 up
+                    for y in range(caption_height):
+                        alpha = int(180 * (1 - y/caption_height))  # Fade from bottom to top
+                        draw.line([(0, caption_height-y), (self.width, caption_height-y)], fill=(0, 0, 0, alpha))
+                    
+                    # Try to load a font
+                    try:
+                        # Try common fonts that might be available
+                        font_paths = [
+                            "C:/Windows/Fonts/Arial.ttf",
+                            "C:/Windows/Fonts/arial.ttf",
+                            "C:/Windows/Fonts/calibri.ttf",
+                            "C:/Windows/Fonts/segoeui.ttf"
+                        ]
+                        
+                        font = None
+                        for font_path in font_paths:
+                            try:
+                                if os.path.exists(font_path):
+                                    font = ImageFont.truetype(font_path, 30)
+                                    break
+                            except:
+                                pass
+                        
+                        if font is None:
+                            font = ImageFont.load_default()
+                    except:
+                        font = ImageFont.load_default()
+                    
+                    # Wrap text to fit width
+                    import textwrap
+                    wrapped_text = textwrap.fill(caption_text, width=50)
+                    
+                    # Draw caption text
+                    text_color = (255, 255, 255, 255)  # White
+                    
+                    # Calculate text dimensions for centering
+                    try:
+                        # For newer Pillow versions
+                        lines = wrapped_text.split('\n')
+                        line_height = 36
+                        text_height = len(lines) * line_height
+                        
+                        # Draw each line separately for better positioning
+                        for i, line in enumerate(lines):
+                            try:
+                                text_bbox = draw.textbbox((0, 0), line, font=font)
+                                text_width = text_bbox[2] - text_bbox[0]
+                                y_position = caption_height - text_height + (i * line_height)
+                                x_position = (self.width - text_width) // 2
+                                draw.text((x_position, y_position), line, font=font, fill=text_color)
+                            except:
+                                # Fallback positioning
+                                draw.text((50, 20 + i*line_height), line, font=font, fill=text_color)
+                    except Exception as text_error:
+                        logger.warning(f"Error in text rendering: {text_error}")
+                        # Simple fallback
+                        draw.text((50, 20), wrapped_text, font=font, fill=text_color)
+                    
+                    # Save the caption
+                    caption_path = os.path.join(self.temp_dir, f"caption_{os.path.basename(output_file).split('.')[0]}.png")
+                    caption_bg.save(caption_path)
+                    
+                    # Create a clip from the caption image
+                    try:
+                        from moviepy.editor import ImageClip, CompositeVideoClip
+                        
+                        # Add caption to bottom of video
+                        caption_clip = ImageClip(caption_path, transparent=True)
+                        caption_clip = caption_clip.set_position(('center', 'bottom'))
+                        caption_clip = caption_clip.set_duration(final_video.duration)
+                        
+                        # Composite the video with caption
+                        final_video = CompositeVideoClip([final_video, caption_clip])
+                        logger.info("Added caption to video")
+                    except Exception as e:
+                        logger.error(f"Failed to create caption clip: {e}")
+            except Exception as e:
+                logger.error(f"Failed to add captions: {e}")
             
             # Write video file
             logger.info(f"Writing video to: {output_file}")

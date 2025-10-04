@@ -214,21 +214,44 @@ class AudioManager:
             audio_filename = f"narration_{timestamp}.wav"
             audio_path = os.path.join(self.temp_dir, audio_filename)
             
+            self.logger.info(f"Generating TTS for script of length: {len(script)} characters")
+            self.logger.info(f"Output path: {audio_path}")
+            self.logger.info(f"Using TTS engine: {self.tts_engine}")
+            
             # Choose TTS engine
             if self.tts_engine == 'gtts':
+                self.logger.info("Trying gTTS engine...")
                 success = await self._generate_gtts(script, audio_path)
+                if not success:
+                    self.logger.warning("gTTS failed, falling back to pyttsx3")
+                    success = self._generate_pyttsx3(script, audio_path)
             elif self.tts_engine == 'pyttsx3':
                 success = self._generate_pyttsx3(script, audio_path)
+                if not success:
+                    self.logger.warning("pyttsx3 failed, falling back to gTTS")
+                    success = await self._generate_gtts(script, audio_path)
             else:
-                self.logger.warning(f"Unknown TTS engine: {self.tts_engine}")
-                success = await self._generate_gtts(script, audio_path)  # Fallback
+                self.logger.warning(f"Unknown TTS engine: {self.tts_engine}, trying both")
+                success = await self._generate_gtts(script, audio_path)  # Try gTTS first
+                if not success:
+                    success = self._generate_pyttsx3(script, audio_path)  # Try pyttsx3 as backup
             
-            if success and os.path.exists(audio_path):
+            # Check for audio file (either WAV or MP3)
+            wav_exists = os.path.exists(audio_path)
+            mp3_exists = os.path.exists(audio_path.replace('.wav', '.mp3'))
+            
+            self.logger.info(f"TTS generation status: {success}, WAV exists: {wav_exists}, MP3 exists: {mp3_exists}")
+            
+            if success and (wav_exists or mp3_exists):
+                final_path = audio_path if wav_exists else audio_path.replace('.wav', '.mp3')
+                self.logger.info(f"TTS generation successful: {final_path}")
+                
                 # Process audio for better quality
-                processed_path = await self._process_audio(audio_path, article)
-                return processed_path or audio_path
-            
-            return None
+                processed_path = await self._process_audio(final_path, article)
+                return processed_path or final_path
+            else:
+                self.logger.error("TTS generation failed: No audio file produced")
+                return None
             
         except Exception as e:
             self.logger.error(f"Error generating TTS: {str(e)}")
@@ -253,7 +276,10 @@ class AudioManager:
             clean_script = self._clean_script_for_tts(script)
             
             if not clean_script:
+                self.logger.warning("Script is empty after cleaning")
                 return False
+            
+            self.logger.info(f"Generating TTS with script length: {len(clean_script)} characters")
             
             # Generate TTS
             tts = gTTS(
@@ -262,33 +288,33 @@ class AudioManager:
                 slow=False
             )
             
-            # Save to temporary file first
-            temp_file = io.BytesIO()
-            tts.write_to_fp(temp_file)
-            temp_file.seek(0)
-            
-            # Convert to WAV format using ffmpeg if available
+            # Save MP3 directly (skip BytesIO step)
+            mp3_path = output_path.replace('.wav', '.mp3')
             try:
-                # Save as MP3 first
-                temp_mp3_path = output_path.replace('.wav', '.mp3')
-                with open(temp_mp3_path, 'wb') as f:
-                    f.write(temp_file.read())
+                tts.save(mp3_path)
+                self.logger.info(f"Saved MP3 file to: {mp3_path}")
                 
-                # Convert to WAV
-                if self._convert_audio_format(temp_mp3_path, output_path):
-                    os.remove(temp_mp3_path)
+                # Verify file exists and has content
+                if not os.path.exists(mp3_path) or os.path.getsize(mp3_path) < 100:
+                    self.logger.warning(f"Generated MP3 file is missing or too small: {mp3_path}")
+                    return False
+                
+                # Try to convert to WAV using ffmpeg
+                if self._convert_audio_format(mp3_path, output_path):
+                    self.logger.info(f"Successfully converted to WAV: {output_path}")
+                    # Keep both MP3 and WAV versions
                     return True
                 else:
-                    # Keep MP3 if conversion fails
-                    os.rename(temp_mp3_path, output_path.replace('.wav', '.mp3'))
+                    self.logger.warning("FFmpeg conversion failed, using MP3 file directly")
+                    # Use MP3 file directly
+                    output_mp3 = output_path.replace('.wav', '.mp3')
+                    if mp3_path != output_mp3:
+                        import shutil
+                        shutil.copy2(mp3_path, output_mp3)
                     return True
-                    
             except Exception as e:
-                self.logger.warning(f"Audio conversion failed: {str(e)}")
-                # Save as MP3
-                with open(output_path.replace('.wav', '.mp3'), 'wb') as f:
-                    f.write(temp_file.read())
-                return True
+                self.logger.error(f"Error saving TTS to file: {str(e)}")
+                return False
             
         except Exception as e:
             self.logger.error(f"gTTS generation failed: {str(e)}")
@@ -466,21 +492,46 @@ class AudioManager:
             True if successful
         """
         try:
-            cmd = [
-                'ffmpeg',
-                '-i', input_path,
-                '-acodec', 'pcm_s16le',
-                '-ar', '44100',
-                '-ac', '2',
-                '-y',  # Overwrite output
-                output_path
-            ]
+            # First try using imageio-ffmpeg's bundled ffmpeg
+            try:
+                import imageio
+                ffmpeg_path = imageio.plugins.ffmpeg.get_exe()
+                self.logger.info(f"Using imageio ffmpeg at: {ffmpeg_path}")
+                
+                cmd = [
+                    ffmpeg_path,
+                    '-i', input_path,
+                    '-acodec', 'aac',  # Using AAC instead of PCM for better compatibility
+                    '-ar', '44100',
+                    '-ac', '2',
+                    '-y',  # Overwrite output
+                    output_path
+                ]
+                
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                if result.returncode == 0:
+                    self.logger.info("Audio conversion successful using imageio ffmpeg")
+                    return True
+                else:
+                    self.logger.warning(f"FFmpeg error: {result.stderr}")
+            except Exception as e:
+                self.logger.warning(f"imageio ffmpeg failed: {str(e)}")
             
-            result = subprocess.run(cmd, capture_output=True, text=True)
-            return result.returncode == 0
+            # Fallback to using moviepy's audio conversion
+            try:
+                from moviepy.editor import AudioFileClip
+                audio_clip = AudioFileClip(input_path)
+                audio_clip.write_audiofile(output_path, verbose=False, logger=None)
+                audio_clip.close()
+                self.logger.info("Audio conversion successful using moviepy")
+                return True
+            except Exception as e:
+                self.logger.warning(f"MoviePy audio conversion failed: {str(e)}")
+            
+            return False
             
         except Exception as e:
-            self.logger.debug(f"ffmpeg conversion failed: {str(e)}")
+            self.logger.error(f"All audio conversion methods failed: {str(e)}")
             return False
     
     def _mix_audio_with_music(self, narration_path: str, music_path: str, output_path: str) -> bool:
