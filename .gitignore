@@ -138,6 +138,10 @@ venv.bak/
 # mkdocs documentation
 /site
 
+# Ensure documentation directory is not ignored
+!/docs
+!/docs/**
+
 # mypy
 .mypy_cache/
 .dmypy.json
@@ -186,6 +190,10 @@ config/.env
 .env.local
 .env.production
 .env.development
+
+# Ensure example configuration files are included
+!config/config.example.yaml
+!config/config.yaml
 
 # Generated videos and media
 videos/*.mp4

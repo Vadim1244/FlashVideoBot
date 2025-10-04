@@ -31,6 +31,7 @@ librosa==0.10.1
 # Progress and logging
 tqdm==4.66.1
 python-dotenv==1.0.0
+colorama==0.4.6
 
 # Video effects and transitions
 imageio==2.31.5

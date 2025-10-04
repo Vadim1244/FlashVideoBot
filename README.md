@@ -87,10 +87,10 @@ python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk
 ## ⚙️ Configuration
 
 ### 1. API Keys Setup
-Copy the configuration file and add your API keys:
+Copy the example configuration file and add your API keys:
 
 ```bash
-cp config/config.yaml config/config_local.yaml
+cp config/config.example.yaml config/config_local.yaml
 ```
 
 Edit `config/config_local.yaml` with your API keys:
@@ -108,7 +108,23 @@ images:
   pixabay_api_key: "your_pixabay_key_here"
 ```
 
-### 2. Environment Variables (Alternative)
+### 2. API Configuration Guide
+For detailed instructions on how to obtain all the required API keys:
+
+1. Read our comprehensive [API Setup Guide](docs/API_SETUP_GUIDE.md)
+2. The guide covers NewsAPI, Unsplash, Pixabay, Pexels, TTS services, and AI APIs
+3. Free tier options are available for all required APIs
+
+### 3. Testing Your API Configuration
+You can test if all your API keys are working correctly by running:
+
+```bash
+python test_apis.py
+```
+
+This will check all configured APIs and report their status.
+
+### 4. Environment Variables (Alternative)
 You can also set API keys via environment variables:
 
 ```bash
@@ -265,6 +281,15 @@ Generated videos include:
 - **Duration**: 15-30 seconds
 - **Naming**: `news_video_YYYYMMDD_HHMMSS.mp4`
 - **Location**: `videos/` directory
+
+## 📚 Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+- [Quick Start Guide](docs/QUICKSTART.md) - Get up and running quickly
+- [API Setup Guide](docs/API_SETUP_GUIDE.md) - How to obtain all required API keys
+- [Configuration Options](docs/CONFIGURATION.md) - Detailed configuration settings
+- [Full Documentation Index](docs/README.md) - Complete documentation reference
 
 ## 📝 Logs
 
