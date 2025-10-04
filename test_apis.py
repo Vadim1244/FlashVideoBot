@@ -102,105 +102,15 @@ def test_pixabay(api_key):
         print_error(f"Pixabay API connection failed: {e}")
         return False
 
-def test_pexels(api_key):
-    """Test Pexels API connection."""
-    if not api_key or api_key == "YOUR_PEXELS_API_KEY_HERE":
-        print_warning("Pexels API key not configured")
-        return False
-    
-    url = "https://api.pexels.com/v1/search?query=news&per_page=1"
-    headers = {"Authorization": api_key}
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        if response.status_code == 200:
-            print_success("Pexels API connection successful")
-            return True
-        else:
-            print_error(f"Pexels API error: {response.status_code}")
-            return False
-    except Exception as e:
-        print_error(f"Pexels API connection failed: {e}")
-        return False
 
-def test_elevenlabs(api_key):
-    """Test ElevenLabs API connection."""
-    if not api_key or api_key == "YOUR_ELEVENLABS_API_KEY_HERE":
-        print_warning("ElevenLabs API key not configured")
-        return False
-    
-    url = "https://api.elevenlabs.io/v1/voices"
-    headers = {"xi-api-key": api_key}
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        if response.status_code == 200:
-            print_success("ElevenLabs API connection successful")
-            return True
-        else:
-            print_error(f"ElevenLabs API error: {response.status_code} - {response.json().get('detail', {}).get('message', 'Unknown error')}")
-            return False
-    except Exception as e:
-        print_error(f"ElevenLabs API connection failed: {e}")
-        return False
 
-def test_azure_tts(api_key, region):
-    """Test Azure TTS API connection."""
-    if not api_key or api_key == "YOUR_AZURE_TTS_KEY_HERE" or not region:
-        print_warning("Azure TTS API key or region not configured")
-        return False
-    
-    url = f"https://{region}.tts.speech.microsoft.com/cognitiveservices/voices/list"
-    headers = {"Ocp-Apim-Subscription-Key": api_key}
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        if response.status_code == 200:
-            print_success("Azure TTS API connection successful")
-            return True
-        else:
-            print_error(f"Azure TTS API error: {response.status_code}")
-            return False
-    except Exception as e:
-        print_error(f"Azure TTS API connection failed: {e}")
-        return False
 
-def test_openai(api_key):
-    """Test OpenAI API connection."""
-    if not api_key or api_key == "YOUR_OPENAI_API_KEY_HERE":
-        print_warning("OpenAI API key not configured")
-        return False
-    
-    url = "https://api.openai.com/v1/models"
-    headers = {"Authorization": f"Bearer {api_key}"}
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        if response.status_code == 200:
-            print_success("OpenAI API connection successful")
-            return True
-        else:
-            print_error(f"OpenAI API error: {response.status_code} - {response.json().get('error', {}).get('message', 'Unknown error')}")
-            return False
-    except Exception as e:
-        print_error(f"OpenAI API connection failed: {e}")
-        return False
 
-def test_huggingface(api_key):
-    """Test HuggingFace API connection."""
-    if not api_key or api_key == "YOUR_HUGGINGFACE_API_KEY_HERE":
-        print_warning("HuggingFace API key not configured")
-        return False
-    
-    url = "https://api-inference.huggingface.co/models"
-    headers = {"Authorization": f"Bearer {api_key}"}
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        if response.status_code == 200:
-            print_success("HuggingFace API connection successful")
-            return True
-        else:
-            print_error(f"HuggingFace API error: {response.status_code}")
-            return False
-    except Exception as e:
-        print_error(f"HuggingFace API connection failed: {e}")
-        return False
+
+
+
+
+
 
 def test_rss_feeds(feeds):
     """Test RSS feed connections."""
@@ -265,51 +175,13 @@ def main():
         results["optional_success"] += 1
     results["optional"] += 1
     
-    # Test Pexels
-    if test_pexels(config.get("images", {}).get("pexels_api_key")):
-        results["optional_success"] += 1
-    results["optional"] += 1
-    
-    print_section("Testing TTS APIs")
-    
-    # Test ElevenLabs
-    tts_engine = config.get("audio", {}).get("tts", {}).get("engine", "gtts")
-    if tts_engine == "elevenlabs":
-        if test_elevenlabs(config.get("audio", {}).get("tts", {}).get("elevenlabs_api_key")):
-            results["required_success"] += 1
-        results["required"] += 1
+    # Note: No additional API tests needed for TTS as the default engines don't require API keys
+    print_section("TTS Status")
+    print_info(f"Using TTS engine: {config.get('audio', {}).get('tts', {}).get('engine', 'gtts')}")
+    if config.get('audio', {}).get('tts', {}).get('engine', 'gtts') in ['gtts', 'pyttsx3']:
+        print_success("TTS engine is properly configured")
     else:
-        if test_elevenlabs(config.get("audio", {}).get("tts", {}).get("elevenlabs_api_key")):
-            results["optional_success"] += 1
-        results["optional"] += 1
-    
-    # Test Azure TTS
-    if tts_engine == "azure":
-        if test_azure_tts(
-            config.get("audio", {}).get("tts", {}).get("azure_tts_key"),
-            config.get("audio", {}).get("tts", {}).get("azure_region")
-        ):
-            results["required_success"] += 1
-        results["required"] += 1
-    else:
-        if test_azure_tts(
-            config.get("audio", {}).get("tts", {}).get("azure_tts_key"),
-            config.get("audio", {}).get("tts", {}).get("azure_region")
-        ):
-            results["optional_success"] += 1
-        results["optional"] += 1
-    
-    print_section("Testing AI APIs")
-    
-    # Test OpenAI
-    if test_openai(config.get("ai", {}).get("openai", {}).get("api_key")):
-        results["optional_success"] += 1
-    results["optional"] += 1
-    
-    # Test HuggingFace
-    if test_huggingface(config.get("ai", {}).get("huggingface", {}).get("api_key")):
-        results["optional_success"] += 1
-    results["optional"] += 1
+        print_warning("Unknown TTS engine configured")
     
     print_section("Summary")
     

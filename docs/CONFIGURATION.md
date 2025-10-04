@@ -97,18 +97,9 @@ video:
 audio:
   # Text-to-speech settings
   tts:
-    engine: "gtts"  # options: "gtts", "pyttsx3", "elevenlabs", "azure"
+    engine: "gtts"  # options: "gtts", "pyttsx3"
     language: "en"
     speed: 1.2
-    
-    # ElevenLabs API (premium TTS service)
-    elevenlabs_api_key: "YOUR_ELEVENLABS_API_KEY_HERE"
-    elevenlabs_voice_id: "YOUR_PREFERRED_VOICE_ID"
-    
-    # Azure Text-to-Speech (Microsoft Cognitive Services)
-    azure_tts_key: "YOUR_AZURE_TTS_KEY_HERE"
-    azure_region: "eastus"
-    azure_voice_name: "en-US-JennyNeural"
     
   # Background music
   music:
@@ -123,11 +114,6 @@ audio:
 | `tts.engine` | TTS engine to use | gtts |
 | `tts.language` | Speech language code | en |
 | `tts.speed` | Speech speed factor | 1.2 |
-| `tts.elevenlabs_api_key` | ElevenLabs API key | None |
-| `tts.elevenlabs_voice_id` | ElevenLabs voice ID | None |
-| `tts.azure_tts_key` | Azure TTS API key | None |
-| `tts.azure_region` | Azure service region | eastus |
-| `tts.azure_voice_name` | Azure neural voice name | en-US-JennyNeural |
 | `music.enabled` | Enable background music | true |
 | `music.volume` | Music volume (0.0-1.0) | 0.3 |
 | `music.fade_in` | Fade-in duration in seconds | 1.0 |
@@ -143,9 +129,6 @@ images:
   # Pixabay (get free key at https://pixabay.com/api/docs/)
   pixabay_api_key: "YOUR_PIXABAY_KEY_HERE"
   
-  # Pexels (get free key at https://www.pexels.com/api/)
-  pexels_api_key: "YOUR_PEXELS_API_KEY_HERE"
-  
   # Fallback keywords for image search
   fallback_keywords: ["news", "breaking news", "media", "journalism", "newspaper"]
 ```
@@ -154,7 +137,6 @@ images:
 |--------|-------------|---------|
 | `unsplash_access_key` | Unsplash API access key | None |
 | `pixabay_api_key` | Pixabay API key | None |
-| `pexels_api_key` | Pexels API key | None |
 | `fallback_keywords` | Keywords for when article keywords aren't available | General news terms |
 
 ## AI/NLP Configuration
@@ -163,19 +145,8 @@ images:
 ai:
   # Summarization settings
   summarization:
-    model: "facebook/bart-large-cnn"
     max_length: 100
     min_length: 30
-    
-  # OpenAI for enhanced summarization (optional)
-  openai:
-    api_key: "YOUR_OPENAI_API_KEY_HERE"
-    model: "gpt-4"
-    temperature: 0.7
-    
-  # HuggingFace Hub (optional for additional AI models)
-  huggingface:
-    api_key: "YOUR_HUGGINGFACE_API_KEY_HERE"
     
   # Sentiment analysis for music selection
   sentiment_analysis: true
@@ -183,13 +154,8 @@ ai:
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `summarization.model` | HuggingFace model for summarization | facebook/bart-large-cnn |
 | `summarization.max_length` | Maximum summary length in words | 100 |
 | `summarization.min_length` | Minimum summary length in words | 30 |
-| `openai.api_key` | OpenAI API key | None |
-| `openai.model` | OpenAI model to use | gpt-4 |
-| `openai.temperature` | Model temperature (randomness) | 0.7 |
-| `huggingface.api_key` | HuggingFace API key | None |
 | `sentiment_analysis` | Enable sentiment analysis | true |
 
 ## Output Configuration
@@ -218,9 +184,10 @@ output:
 
 You can also use environment variables to override configuration values. Use the following format:
 
-```
-FLASHVIDEOBOT_NEWS_NEWSAPI_KEY=your_api_key
-FLASHVIDEOBOT_IMAGES_UNSPLASH_ACCESS_KEY=your_api_key
+```bash
+export NEWSAPI_KEY="YOUR_NEWS_API_KEY"
+export UNSPLASH_KEY="YOUR_UNSPLASH_ACCESS_KEY"
+export PIXABAY_KEY="YOUR_PIXABAY_API_KEY"
 ```
 
 Environment variables take precedence over values in the configuration file.

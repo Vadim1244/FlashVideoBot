@@ -8,14 +8,8 @@ This document provides step-by-step instructions on how to obtain all the API ke
 - [Image APIs](#image-apis)
   - [Unsplash API](#unsplash-api)
   - [Pixabay API](#pixabay-api)
-  - [Pexels API](#pexels-api)
 - [Text-to-Speech APIs](#text-to-speech-apis)
   - [Google Text-to-Speech](#google-text-to-speech)
-  - [ElevenLabs API](#elevenlabs-api)
-  - [Microsoft Azure Text-to-Speech](#microsoft-azure-text-to-speech)
-- [AI and NLP APIs](#ai-and-nlp-apis)
-  - [OpenAI API](#openai-api)
-  - [HuggingFace API](#huggingface-api)
 - [Configuration Setup](#configuration-setup)
 
 ## News APIs
@@ -68,24 +62,12 @@ Pixabay provides over 2.3 million high-quality stock images, videos, and music.
 - No daily/monthly limits
 - Cannot be used for some commercial purposes (check terms)
 
-### Pexels API
-Pexels offers high-quality, free stock photos and videos.
 
-1. Visit [Pexels API](https://www.pexels.com/api/)
-2. Click "Get Started"
-3. Sign up for an account or sign in
-4. Your API key will be displayed on your dashboard
-5. Copy this key to `config_local.yaml` under `images.pexels_api_key`
-
-**Free Plan Limits:**
-- 200 requests per hour
-- 20,000 requests per month
-- Must include attribution in your application
 
 ## Text-to-Speech APIs
 
 ### Google Text-to-Speech
-The default TTS engine (gTTS) doesn't require an API key but has limitations. For higher quality or more features:
+The default TTS engine (gTTS) doesn't require an API key but has limitations:
 
 1. FlashVideoBot uses the `gtts` library by default which doesn't require an API key
 2. Set `audio.tts.engine` to "gtts" in your config file
@@ -96,63 +78,9 @@ The default TTS engine (gTTS) doesn't require an API key but has limitations. Fo
 - Internet connection required
 - Usage limits may apply
 
-### ElevenLabs API
-For premium, highly realistic voice synthesis:
+Alternatively, you can use the local pyttsx3 engine by setting `audio.tts.engine` to "pyttsx3" in your config file.
 
-1. Visit [ElevenLabs](https://elevenlabs.io/)
-2. Create an account
-3. Navigate to your profile settings
-4. Copy your API key
-5. Set `audio.tts.engine` to "elevenlabs" in your config file
-6. Copy the API key to `config_local.yaml` under `audio.tts.elevenlabs_api_key`
-7. Select a voice ID from your ElevenLabs dashboard and add it under `audio.tts.elevenlabs_voice_id`
 
-**Free Plan Limits:**
-- 10,000 characters per month
-- Access to basic voices
-
-### Microsoft Azure Text-to-Speech
-For high-quality neural voices with multiple language support:
-
-1. Create an [Azure account](https://azure.microsoft.com/free/)
-2. Create a Speech service resource in the Azure portal
-3. Navigate to your resource and copy the API key and region
-4. Set `audio.tts.engine` to "azure" in your config file
-5. Copy the key to `config_local.yaml` under `audio.tts.azure_tts_key`
-6. Add your Azure region under `audio.tts.azure_region`
-7. Choose a voice from the [Azure Neural Voice list](https://learn.microsoft.com/azure/ai-services/speech-service/language-support?tabs=tts) and add it under `audio.tts.azure_voice_name`
-
-**Free Tier Limits:**
-- 5 hours of audio per month
-- Full neural voice access
-
-## AI and NLP APIs
-
-### OpenAI API
-For enhanced text summarization and content generation:
-
-1. Visit [OpenAI Platform](https://platform.openai.com/)
-2. Create an account or sign in
-3. Navigate to the API section
-4. Create an API key
-5. Copy this key to `config_local.yaml` under `ai.openai.api_key`
-6. Set your preferred model under `ai.openai.model`
-
-**Free Tier:**
-- Limited or no free tier (check current OpenAI pricing)
-- Pay-as-you-go pricing available
-
-### HuggingFace API
-For access to various open-source AI models:
-
-1. Create a [HuggingFace account](https://huggingface.co/join)
-2. Navigate to your profile and click on "Access Tokens"
-3. Create a new token with "read" access
-4. Copy this token to `config_local.yaml` under `ai.huggingface.api_key`
-
-**Free Plan Limits:**
-- Rate limits apply based on model popularity
-- Some models may have restrictions
 
 ## Configuration Setup
 
@@ -179,8 +107,8 @@ For access to various open-source AI models:
 
 You can test if your API keys are working properly by running the following command:
 
-```python
-python main.py --test-apis
+```bash
+python test_apis.py
 ```
 
 This will validate your configuration and test each API connection.

@@ -53,7 +53,7 @@ FlashVideoBot is a comprehensive Python application that automatically fetches t
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/TheUnknown550/FlashVideoBot.git
+git clone https://github.com/yourusername/FlashVideoBot.git
 cd FlashVideoBot
 ```
 
@@ -84,6 +84,18 @@ python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk
 - **macOS**: `brew install ffmpeg`
 - **Linux**: `sudo apt install ffmpeg` (Ubuntu/Debian)
 
+### 6. Setup Scripts (Optional)
+For convenience, you can run the setup script for your platform:
+
+```bash
+# On Windows:
+.\setup_windows.ps1
+
+# On macOS/Linux:
+chmod +x setup_unix.sh
+./setup_unix.sh
+```
+
 ## ⚙️ Configuration
 
 ### 1. API Keys Setup
@@ -98,21 +110,20 @@ Edit `config/config_local.yaml` with your API keys:
 ```yaml
 news:
   # Get free key at https://newsapi.org
-  newsapi_key: "your_newsapi_key_here"
-
-images:
-  # Get free key at https://unsplash.com/developers
-  unsplash_access_key: "your_unsplash_key_here"
+  newsapi_key: "YOUR_NEWS_API_KEY"
   
   # Get free key at https://pixabay.com/api/docs/
-  pixabay_api_key: "your_pixabay_key_here"
+  pixabay_key: "YOUR_PIXABAY_API_KEY"
+  
+  # Get free key at https://unsplash.com/developers
+  unsplash_key: "YOUR_UNSPLASH_ACCESS_KEY"
 ```
 
 ### 2. API Configuration Guide
 For detailed instructions on how to obtain all the required API keys:
 
 1. Read our comprehensive [API Setup Guide](docs/API_SETUP_GUIDE.md)
-2. The guide covers NewsAPI, Unsplash, Pixabay, Pexels, TTS services, and AI APIs
+2. The guide covers NewsAPI, Unsplash, Pixabay, and other services
 3. Free tier options are available for all required APIs
 
 ### 3. Testing Your API Configuration
@@ -128,12 +139,12 @@ This will check all configured APIs and report their status.
 You can also set API keys via environment variables:
 
 ```bash
-export NEWSAPI_KEY="your_newsapi_key_here"
-export UNSPLASH_ACCESS_KEY="your_unsplash_key_here"
-export PIXABAY_API_KEY="your_pixabay_key_here"
+export NEWSAPI_KEY="YOUR_NEWS_API_KEY"
+export UNSPLASH_KEY="YOUR_UNSPLASH_ACCESS_KEY"
+export PIXABAY_KEY="YOUR_PIXABAY_API_KEY"
 ```
 
-### 3. Configuration Options
+### 5. Configuration Options
 
 | Setting | Description | Default |
 |---------|-------------|---------|
@@ -300,11 +311,11 @@ Application logs are saved to:
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our contributing guidelines:
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
@@ -312,18 +323,19 @@ We welcome contributions! Please see our contributing guidelines:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## 🙏 Acknowledgements
 
-- **NewsAPI** for news data
-- **Unsplash & Pixabay** for stock images
-- **OpenAI Transformers** for text summarization
-- **MoviePy** for video processing
-- **NLTK & Sumy** for natural language processing
+- [MoviePy](https://zulko.github.io/moviepy/) for video processing
+- [gTTS](https://gtts.readthedocs.io/) for text-to-speech functionality
+- [NLTK](https://www.nltk.org/) for natural language processing
+- [Pillow](https://python-pillow.org/) for image processing
+- [Unsplash](https://unsplash.com/) and [Pixabay](https://pixabay.com/) for image APIs
+- [NewsAPI](https://newsapi.org/) for news content
 
 ## 🆘 Support
 
-- **Issues**: Report bugs on [GitHub Issues](https://github.com/TheUnknown550/FlashVideoBot/issues)
-- **Discussions**: Join discussions on [GitHub Discussions](https://github.com/TheUnknown550/FlashVideoBot/discussions)
+- **Issues**: Report bugs on [GitHub Issues](https://github.com/yourusername/FlashVideoBot/issues)
+- **Discussions**: Join discussions on [GitHub Discussions](https://github.com/yourusername/FlashVideoBot/discussions)
 - **Documentation**: Full docs at [docs/](docs/)
 
 ## 🔮 Roadmap
@@ -339,4 +351,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ for creators who want to automate engaging news content**
+**Made with ❤️ by the FlashVideoBot team for creators who want to automate engaging news content**

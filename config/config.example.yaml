@@ -53,18 +53,9 @@ video:
 audio:
   # Text-to-speech settings
   tts:
-    engine: "gtts"  # options: "gtts", "pyttsx3", "elevenlabs", "azure"
+    engine: "gtts"  # options: "gtts", "pyttsx3"
     language: "en"
     speed: 1.2
-    
-    # ElevenLabs API (premium TTS service)
-    elevenlabs_api_key: "YOUR_ELEVENLABS_API_KEY_HERE"
-    elevenlabs_voice_id: "YOUR_PREFERRED_VOICE_ID"
-    
-    # Azure Text-to-Speech (Microsoft Cognitive Services)
-    azure_tts_key: "YOUR_AZURE_TTS_KEY_HERE"
-    azure_region: "eastus"  # Your Azure service region
-    azure_voice_name: "en-US-JennyNeural"  # Azure neural voice name
     
   # Background music
   music:
@@ -81,8 +72,7 @@ images:
   # Pixabay (get free key at https://pixabay.com/api/docs/)
   pixabay_api_key: "YOUR_PIXABAY_KEY_HERE"
   
-  # Pexels (get free key at https://www.pexels.com/api/)
-  pexels_api_key: "YOUR_PEXELS_API_KEY_HERE"
+
   
   # Fallback keywords for image search
   fallback_keywords: ["news", "breaking news", "media", "journalism", "newspaper"]
@@ -91,20 +81,9 @@ images:
 ai:
   # Summarization settings
   summarization:
-    model: "facebook/bart-large-cnn"  # or "google/pegasus-xsum"
     max_length: 100
     min_length: 30
-    
-  # OpenAI for enhanced summarization (optional)
-  openai:
-    api_key: "YOUR_OPENAI_API_KEY_HERE"
-    model: "gpt-4"  # or "gpt-3.5-turbo"
-    temperature: 0.7
-    
-  # HuggingFace Hub (optional for additional AI models)
-  huggingface:
-    api_key: "YOUR_HUGGINGFACE_API_KEY_HERE"
-    
+  
   # Sentiment analysis for music selection
   sentiment_analysis: true
   

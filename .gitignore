@@ -3,6 +3,24 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Project-specific temporary files
+assets/temp/*
+assets/temp/audio/*
+assets/temp/image_cache/*
+assets/temp/news_cache/*
+!assets/temp/.gitkeep
+!assets/temp/audio/.gitkeep
+!assets/temp/image_cache/.gitkeep
+!assets/temp/news_cache/.gitkeep
+videos/*
+!videos/.gitkeep
+logs/*
+!logs/.gitkeep
+
+# Local configuration
+config/config_local.yaml
+.env
+
 # C extensions
 *.so
 

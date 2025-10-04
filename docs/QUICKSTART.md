@@ -12,7 +12,7 @@ This guide will help you set up and run FlashVideoBot quickly. For more detailed
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/TheUnknown550/FlashVideoBot.git
+   git clone https://github.com/yourusername/FlashVideoBot.git
    cd FlashVideoBot
    ```
 
@@ -73,7 +73,7 @@ python main.py --articles 3
 python main.py --config config/my_custom_config.yaml
 
 # Test your API configurations
-python main.py --test-apis
+python test_apis.py
 
 # Generate a simple test video
 python quickstart.py
@@ -90,7 +90,7 @@ If you encounter any issues:
 1. Check the logs in `logs/flashvideobot.log`
 2. Make sure all API keys are correctly entered
 3. Verify that FFmpeg is properly installed
-4. See [Common Issues](./troubleshooting/COMMON_ISSUES.md) for more help
+4. Check the main README.md for troubleshooting tips
 
 ## Next Steps
 
