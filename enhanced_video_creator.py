@@ -369,96 +369,121 @@ class EnhancedVideoCreator:
                 # Use both title and summary for better captions
                 title = article.get('title', '')
                 summary = article.get('summary', '')
-                caption_text = summary[:100] + '...' if len(summary) > 100 else summary
-                
+                caption_text = summary[:200] + '...' if len(summary) > 200 else summary
+
                 if caption_text:
-                    logger.info("Adding caption using PIL method instead of TextClip")
-                    
-                    # Create a new blank frame with the caption text
-                    caption_height = 150
-                    from PIL import Image, ImageDraw, ImageFont
-                    
-                    # Create caption background with gradient
-                    caption_bg = Image.new('RGBA', (self.width, caption_height), (0, 0, 0, 0))
-                    draw = ImageDraw.Draw(caption_bg)
-                    
-                    # Create semi-transparent black gradient from bottom to 2/3 up
-                    for y in range(caption_height):
-                        alpha = int(180 * (1 - y/caption_height))  # Fade from bottom to top
-                        draw.line([(0, caption_height-y), (self.width, caption_height-y)], fill=(0, 0, 0, alpha))
-                    
-                    # Try to load a font
-                    try:
-                        # Try common fonts that might be available
-                        font_paths = [
-                            "C:/Windows/Fonts/Arial.ttf",
-                            "C:/Windows/Fonts/arial.ttf",
-                            "C:/Windows/Fonts/calibri.ttf",
-                            "C:/Windows/Fonts/segoeui.ttf"
-                        ]
-                        
-                        font = None
-                        for font_path in font_paths:
+                    logger.info("Adding sentence-by-sentence captions using PIL method")
+
+                    # Split text into sentences
+                    import re
+                    sentences = re.split(r'(?<=[.!?])\s+', caption_text.strip())
+                    sentences = [s.strip() for s in sentences if s.strip()]
+
+                    if sentences:
+                        # Calculate timing for each sentence
+                        total_duration = final_video.duration
+                        sentence_duration = total_duration / len(sentences)
+
+                        caption_clips = []
+
+                        for i, sentence in enumerate(sentences):
                             try:
-                                if os.path.exists(font_path):
-                                    font = ImageFont.truetype(font_path, 30)
-                                    break
-                            except:
-                                pass
-                        
-                        if font is None:
-                            font = ImageFont.load_default()
-                    except:
-                        font = ImageFont.load_default()
-                    
-                    # Wrap text to fit width
-                    import textwrap
-                    wrapped_text = textwrap.fill(caption_text, width=50)
-                    
-                    # Draw caption text
-                    text_color = (255, 255, 255, 255)  # White
-                    
-                    # Calculate text dimensions for centering
-                    try:
-                        # For newer Pillow versions
-                        lines = wrapped_text.split('\n')
-                        line_height = 36
-                        text_height = len(lines) * line_height
-                        
-                        # Draw each line separately for better positioning
-                        for i, line in enumerate(lines):
-                            try:
-                                text_bbox = draw.textbbox((0, 0), line, font=font)
-                                text_width = text_bbox[2] - text_bbox[0]
-                                y_position = caption_height - text_height + (i * line_height)
-                                x_position = (self.width - text_width) // 2
-                                draw.text((x_position, y_position), line, font=font, fill=text_color)
-                            except:
-                                # Fallback positioning
-                                draw.text((50, 20 + i*line_height), line, font=font, fill=text_color)
-                    except Exception as text_error:
-                        logger.warning(f"Error in text rendering: {text_error}")
-                        # Simple fallback
-                        draw.text((50, 20), wrapped_text, font=font, fill=text_color)
-                    
-                    # Save the caption
-                    caption_path = os.path.join(self.temp_dir, f"caption_{os.path.basename(output_file).split('.')[0]}.png")
-                    caption_bg.save(caption_path)
-                    
-                    # Create a clip from the caption image
-                    try:
-                        from moviepy.editor import ImageClip, CompositeVideoClip
-                        
-                        # Add caption to bottom of video
-                        caption_clip = ImageClip(caption_path, transparent=True)
-                        caption_clip = caption_clip.set_position(('center', 'bottom'))
-                        caption_clip = caption_clip.set_duration(final_video.duration)
-                        
-                        # Composite the video with caption
-                        final_video = CompositeVideoClip([final_video, caption_clip])
-                        logger.info("Added caption to video")
-                    except Exception as e:
-                        logger.error(f"Failed to create caption clip: {e}")
+                                # Create caption for this sentence
+                                caption_height = 200  # Taller for middle positioning
+                                from PIL import Image, ImageDraw, ImageFont
+
+                                # Create caption background with gradient
+                                caption_bg = Image.new('RGBA', (self.width, caption_height), (0, 0, 0, 0))
+                                draw = ImageDraw.Draw(caption_bg)
+
+                                # Create semi-transparent black background
+                                draw.rectangle([(0, 0), (self.width, caption_height)], fill=(0, 0, 0, 160))
+
+                                # Try to load a font
+                                try:
+                                    font_paths = [
+                                        "C:/Windows/Fonts/Arial.ttf",
+                                        "C:/Windows/Fonts/arial.ttf",
+                                        "C:/Windows/Fonts/calibri.ttf",
+                                        "C:/Windows/Fonts/segoeui.ttf"
+                                    ]
+
+                                    font = None
+                                    for font_path in font_paths:
+                                        try:
+                                            if os.path.exists(font_path):
+                                                font = ImageFont.truetype(font_path, 36)  # Slightly larger font
+                                                break
+                                        except:
+                                            pass
+
+                                    if font is None:
+                                        font = ImageFont.load_default()
+                                except:
+                                    font = ImageFont.load_default()
+
+                                # Wrap sentence text to fit width
+                                import textwrap
+                                wrapped_text = textwrap.fill(sentence, width=40)  # Shorter lines for middle positioning
+
+                                # Draw caption text
+                                text_color = (255, 255, 255, 255)  # White
+
+                                # Calculate text dimensions for centering
+                                try:
+                                    lines = wrapped_text.split('\n')
+                                    line_height = 42
+                                    text_height = len(lines) * line_height
+
+                                    # Draw each line separately for better positioning
+                                    for j, line in enumerate(lines):
+                                        try:
+                                            text_bbox = draw.textbbox((0, 0), line, font=font)
+                                            text_width = text_bbox[2] - text_bbox[0]
+                                            y_position = (caption_height - text_height) // 2 + (j * line_height)
+                                            x_position = (self.width - text_width) // 2
+                                            draw.text((x_position, y_position), line, font=font, fill=text_color)
+                                        except:
+                                            # Fallback positioning
+                                            draw.text((50, 20 + j*line_height), line, font=font, fill=text_color)
+                                except Exception as text_error:
+                                    logger.warning(f"Error in text rendering: {text_error}")
+                                    # Simple fallback
+                                    draw.text((50, 50), wrapped_text, font=font, fill=text_color)
+
+                                # Save the caption
+                                caption_path = os.path.join(self.temp_dir, f"caption_{i}_{os.path.basename(output_file).split('.')[0]}.png")
+                                caption_bg.save(caption_path)
+
+                                # Create a clip from the caption image
+                                from moviepy.editor import ImageClip
+                                caption_clip = ImageClip(caption_path, transparent=True)
+
+                                # Position in the middle of the screen
+                                caption_clip = caption_clip.set_position('center')
+
+                                # Set duration and start time for this sentence
+                                start_time = i * sentence_duration
+                                end_time = min((i + 1) * sentence_duration, total_duration)
+                                caption_clip = caption_clip.set_start(start_time).set_duration(end_time - start_time)
+
+                                caption_clips.append(caption_clip)
+                                logger.info(f"Created caption {i+1}/{len(sentences)}: '{sentence[:30]}...'")
+
+                            except Exception as e:
+                                logger.error(f"Failed to create caption for sentence {i+1}: {e}")
+                                continue
+
+                        # Composite the video with all caption clips
+                        if caption_clips:
+                            final_video = CompositeVideoClip([final_video] + caption_clips)
+                            logger.info(f"Added {len(caption_clips)} sentence captions to video")
+                        else:
+                            logger.warning("No caption clips were created successfully")
+                    else:
+                        logger.warning("No sentences found in caption text")
+                else:
+                    logger.info("No caption text available")
             except Exception as e:
                 logger.error(f"Failed to add captions: {e}")
             
